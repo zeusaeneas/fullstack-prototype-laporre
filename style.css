@@ -1,61 +1,46 @@
-/* Custom Styles for Full-Stack App */
-
-:root {
-    --primary-color: #007bff;
-    --dark-color: #212529;
-    --light-color: #f8f9fa;
-}
-
-body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: var(--light-color);
-}
-
-/* Navbar customization */
-.navbar {
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.navbar-brand {
-    font-weight: 600;
-    font-size: 1.25rem;
-}
-
-.navbar-nav .nav-link {
-    margin-left: 1rem;
-    transition: color 0.3s ease;
-}
-
-.navbar-nav .nav-link:hover {
-    color: var(--primary-color) !important;
-}
-
-/* Main content */
-main {
-    background-color: white;
-    padding: 2rem;
-    border-radius: 8px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-h1 {
-    color: var(--dark-color);
-    margin-bottom: 1rem;
-}
-
+html,
+body,
 p {
-    color: #666;
-    font-size: 1.05rem;
+  margin: 0;
+  padding: 0;
+  font-family: "Poppins", sans-serif;
+  box-sizing: border-box;
 }
 
-/* Responsive adjustments */
-@media (max-width: 768px) {
-    .navbar-nav .nav-link {
-        margin-left: 0;
-        padding: 0.5rem 0;
-    }
-    
-    main {
-        margin: 1rem;
-    }
+
+.page {
+  display: none;
+}
+
+.page.active {
+  display: block;
+}
+
+
+body.not-authenticated .role-logged-in {
+  display: none;
+}
+
+body.authenticated .role-logged-out {
+  display: none;
+}
+
+.role-admin {
+  display: none;
+}
+
+body.is-admin .role-admin {
+  display: block;
+}
+
+.bg-cyan-100 {
+  background-color: #b2ebf2 !important;
+}
+
+.bg-cyan-200 {
+  background-color: #80deea !important;
+}
+
+.bg-cyan-300 {
+  background-color: #6edff6 !important;
 }
