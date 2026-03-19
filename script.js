@@ -10,10 +10,27 @@ let window_db = {
     requests: []
 };
 
+function getAuthHeader() {
+    const token = sessionStorage.getItem('authToken');
+    return token ? { Authorization: `Bearer ${token}`} : {};
+}
+
+async function loadAdminDashboard() {
+    const res = await fetch('http://localhost:3000/api/admin/dashboard', {
+        headers: getAuthHeader()
+    });
+    if (res.ok) {
+        const data = await res.json();
+        document.getElementById('content').innerText = data.message;
+    } else {
+        document.getElementById('content').innerText = 'Access denied!';
+    }
+}
+
 // ============================================================================
 // INITIALIZATION
 // ============================================================================
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded',async function() {
     console.log('App initializing...');
     
     // Load data from storage
@@ -21,15 +38,13 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Setup event listeners
     setupEventListeners();
+
     
-    // Check if user is already logged in
-    const authToken = localStorage.getItem('auth_token');
-    if (authToken) {
-        const user = window_db.accounts.find(a => a.email === authToken);
-        if (user) {
-            setAuthState(true, user);
-        }
-    }
+    
+    // NEW - checks sessionStorage token and calls /api/profile
+    await restoreSession();
+
+
     
     // Set initial route
     if (!window.location.hash) {
@@ -40,6 +55,25 @@ document.addEventListener('DOMContentLoaded', function() {
     window.addEventListener('hashchange', handleRouting);
     handleRouting();
 });
+
+async function restoreSession() {
+        const token = sessionStorage.getItem('authToken');
+        if (!token) return;
+
+        try {
+            const res = await fetch('http://localhost:3000/api/profile', {
+                headers: getAuthHeader()
+            });
+            if (res.ok) {
+                const data = await res.json();
+                setAuthState(true, data.user);
+            } else {
+                sessionStorage.removeItem('authToken');
+            }
+        } catch (err) {
+            console.log('Could not restore session:', err);
+        }
+}
 
 // ============================================================================
 // STORAGE FUNCTIONS
@@ -252,26 +286,36 @@ function handleRegister() {
     setTimeout(() => navigateTo('/verify-email'), 1000);
 }
 
-function handleLogin() {
+
+async function handleLogin() {
     const email = document.getElementById('loginEmail').value.trim();
     const password = document.getElementById('loginPassword').value;
-    
+
     if (!email || !password) {
         showToast('Please enter email and password', 'danger');
         return;
     }
-    
-    const user = window_db.accounts.find(a => 
-        a.email === email && a.password === password && a.verified
-    );
-    
-    if (user) {
-        setAuthState(true, user);
-        showToast(`Welcome ${user.firstName}!`, 'success');
-        document.getElementById('loginForm').reset();
-        setTimeout(() => navigateTo('/profile'), 1000);
-    } else {
-        showToast('Invalid email or password', 'danger');
+
+    try {
+        const response = await fetch('http://localhost:3000/api/login', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({username: email, password})
+        });
+
+        const data = await response.json();
+
+        if(response.ok) {
+            sessionStorage.setItem('authToken', data.token);
+            setAuthState(true, data.user);
+            showToast(`Welcome ${data.user.username}!`, 'success');
+            document.getElementById('loginForm').reset();
+            setTimeout(() => navigateTo('/profile'), 1000);
+        } else{
+            showToast(data.error || 'Login failed', 'danger');
+        }
+    } catch (err) {
+        showToast('Network error - is the server running?', 'danger');
     }
 }
 
